@@ -26,15 +26,13 @@ wss.on("connection", (ws) => {
 
   ws.on("message", function message(data) {
     console.log("received: %s", data);
-    // Example: Parse data and update `tmp` and `hm`
-    /*
     try {
-      const parsedData = JSON.parse(data);
-      tmp = parsedData.tmp;
-      hm = parsedData.hm;
+      const jsonData = JSON.parse(message);
+      console.log("수신된 JSON 데이터:", jsonData);
+      tmp = jsonData.tmp;
+      hm = jsonData.hm;
     } catch (error) {
-      console.error("Error parsing data: ", error);
+      console.error("JSON 데이터 파싱 오류:", error);
     }
-    */
   });
 });
