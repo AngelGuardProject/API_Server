@@ -3,8 +3,8 @@ const WebSocket = require("ws");
 const app = express();
 
 const port = 3000;
-let tmp = 0; // Changed to 'let' for best practice if these will change
-let hm = 0; // Changed to 'let' for best practice if these will change
+let tmp = 0; // 값이 변경될 경우를 대비하여 'let' 사용
+let hm = 0; // 값이 변경될 경우를 대비하여 'let' 사용
 
 app.get("/data", function (req, res) {
   res.json({
@@ -13,26 +13,25 @@ app.get("/data", function (req, res) {
   });
 });
 
-app.listen(port, function () {
+const server = app.listen(port, function () {
   console.log("Server running at " + port);
 });
 
-// Create a WebSocket server on port 3030
-const wss = new WebSocket.Server({ port: 3030 });
+// Express 서버와 동일한 포트(3000)에서 WebSocket 서버 생성
+const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
-  console.log("WebSocket server started");
-  ws.on("error", console.error);
+  console.log("WebSocket client connected");
 
-  ws.on("message", function message(data) {
-    console.log("received: %s", data);
+  ws.on("message", function incoming(data) {
+    console.log("Received message:", data);
     try {
-      const jsonData = JSON.parse(message);
-      console.log("수신된 JSON 데이터:", jsonData);
+      const jsonData = JSON.parse(data);
+      console.log("Received JSON data:", jsonData);
       tmp = jsonData.tmp;
       hm = jsonData.hm;
     } catch (error) {
-      console.error("JSON 데이터 파싱 오류:", error);
+      console.error("Error parsing JSON data:", error);
     }
   });
 });
