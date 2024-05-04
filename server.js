@@ -18,7 +18,7 @@ const server = app.listen(port, function () {
 });
 
 // Express 서버와 동일한 포트(3000)에서 WebSocket 서버 생성
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ 3030 });
 
 wss.on("connection", (ws) => {
   console.log("WebSocket client connected");
