@@ -1,5 +1,6 @@
 const express = require("express");
 const WebSocket = require("ws");
+const path = require("path");
 const app = express();
 
 const port = 3000;
@@ -18,6 +19,8 @@ app.get("/data", function (req, res) {
     hm: hm,
   });
 });
+
+app.use(express.static(path.join(__dirname, "/image")));
 
 app.listen(port, function () {
   console.log("Server running at " + port);
