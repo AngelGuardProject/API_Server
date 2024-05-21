@@ -3,11 +3,13 @@ const WebSocket = require("ws");
 const app = express();
 
 const port = 3000;
+const wsPort = 3030;
+
 let temp = 0;
 let hm = 0;
 let UUID = "0";
 
-const wss = new WebSocket.Server({ port: 3030 });
+const wss = new WebSocket.Server({ port: wsPort });
 
 app.get("/data", function (req, res) {
   res.json({
