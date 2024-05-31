@@ -11,16 +11,21 @@ let UUID = "0";
 let connectedClients = [];
 
 const wss = new WebSocket.Server({ port: 3030 });
-const mics = new WebSocket.Server({ port: 3020 });
 
 app.use("/image", express.static("image"));
 app.use("/js", express.static("js"));
-app.get("/audio", (req, res) => res.sendFile(path.resolve(__dirname, "./audio_client.html")));
+app.get("/audio", (req, res) =>
+  res.sendFile(path.resolve(__dirname, "./audio_client.html"))
+);
 app.get("/data", function (req, res) {
   res.json({
     temp: temp,
     hm: hm,
   });
+});
+
+app.listen(port, function () {
+  console.log("Server running at " + port);
 });
 
 wss.on("connection", (ws) => {
@@ -31,7 +36,7 @@ wss.on("connection", (ws) => {
       const jsonData = JSON.parse(data);
       temp = jsonData.temp;
       hm = jsonData.hm;
-        console.log("temp : ",temp," / hm : ",hm);
+      console.log("temp : ", temp, " / hm : ", hm);
     } catch (error) {
       console.error("Error parsing JSON data:", error);
     }
@@ -49,4 +54,6 @@ mics.on("connection", (ws, req) => {
   });
 });
 
-app.listen(port, function () { console.log("Server running at " + port);});
+app.listen(port, function () {
+  console.log("Server running at " + port);
+});
