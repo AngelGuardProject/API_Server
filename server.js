@@ -11,6 +11,7 @@ let UUID = "0";
 let connectedClients = [];
 
 const wss = new WebSocket.Server({ port: 3030 });
+const mics = new WebSocket.Server({ port: 3020 });
 
 app.use("/image", express.static("image"));
 app.use("/js", express.static("js"));
@@ -22,10 +23,6 @@ app.get("/data", function (req, res) {
     temp: temp,
     hm: hm,
   });
-});
-
-app.listen(port, function () {
-  console.log("Server running at " + port);
 });
 
 wss.on("connection", (ws) => {
