@@ -4,9 +4,10 @@ const path = require("path");
 const app = express();
 
 const port = 3010;
+
+let uuid = 0;
 let temp = 0;
 let hm = 0;
-let UUID = "0";
 
 let connectedClients = [];
 
@@ -31,9 +32,10 @@ wss.on("connection", (ws) => {
     console.log("Received message:", data);
     try {
       const jsonData = JSON.parse(data);
+      uuid = jsonData.uuid;
       temp = jsonData.temp;
       hm = jsonData.hm;
-      console.log("temp : ", temp, " / hm : ", hm);
+      console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
     } catch (error) {
       console.error("Error parsing JSON data:", error);
     }
