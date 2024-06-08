@@ -59,7 +59,3 @@ mics.on("connection", (ws, req) => {
     });
   });
 });
-
-app.listen(port, function () {
-  console.log("Server running at " + port);
-});
