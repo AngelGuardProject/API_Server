@@ -37,7 +37,7 @@ wss.on("connection", (ws) => {
       const uuid = jsonData.uuid;
       const temp = jsonData.temp;
       const hm = jsonData.hm;
-      const time = Date.now();
+      const time = Date.now().toLocaleDateString('en-US');
       console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
       dataStore[uuid] = { temp, hm , time};
     } catch (error) {
