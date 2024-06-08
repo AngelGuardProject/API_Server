@@ -5,7 +5,7 @@ const app = express();
 
 let dataStore = {};
 
-let connectedClients = [];
+let connectedClients = []; //MIC server
 
 const wss = new WebSocket.Server({ port: 3030 });
 const mics = new WebSocket.Server({ port: 3020 });
@@ -23,14 +23,9 @@ app.get("/data", function (req, res) {
   const uuid = req.query.uuid;
   if (uuid) {
     // 특정 uuid의 데이터를 반환
-    if (dataStore[uuid]) {
-      res.json(dataStore[uuid]);
-    } else {
-      res.status(404).json({ error: "UUID not found" });
-    }
-  } else {
-    res.status(404).json({ error: "UUID not found" });
-  }
+    if (dataStore[uuid]) res.json(dataStore[uuid]);
+    else res.status(404).json({ error: "UUID not found" });
+  } else res.status(404).json({ error: "UUID not found" });
 });
 
 wss.on("connection", (ws) => {
@@ -42,8 +37,9 @@ wss.on("connection", (ws) => {
       const uuid = jsonData.uuid;
       const temp = jsonData.temp;
       const hm = jsonData.hm;
+      const time = Date.now();
       console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
-      dataStore[uuid] = { temp, hm };
+      dataStore[uuid] = { temp, hm , time};
     } catch (error) {
       console.error("Error parsing JSON data:", error);
     }
