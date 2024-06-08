@@ -39,10 +39,11 @@ wss.on("connection", (ws) => {
     //console.log("Received message:", data);
     try {
       const jsonData = JSON.parse(data);
-      uuid = jsonData.uuid;
-      temp = jsonData.temp;
-      hm = jsonData.hm;
+      const uuid = jsonData.uuid;
+      const temp = jsonData.temp;
+      const hm = jsonData.hm;
       console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
+      dataStore[uuid] = { temp, hm };
     } catch (error) {
       console.error("Error parsing JSON data:", error);
     }
