@@ -29,8 +29,7 @@ app.get("/data", function (req, res) {
       res.status(404).json({ error: "UUID not found" });
     }
   } else {
-    // 모든 uuid의 데이터를 반환
-    res.json(dataStore);
+    res.status(404).json({ error: "UUID not found" });
   }
 });
 
