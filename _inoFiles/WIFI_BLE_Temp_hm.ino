@@ -2,6 +2,7 @@
 // ESP8266 and ESP32 OLED driver for SSD1306 displays / by THingPulse
 // ArduinoJson / by Benoit Blanchon
 // ArduinoWebsockets / by Gll Malmon
+
 #include <WiFi.h>
 #include <DHT.h>
 #include <Wire.h>
@@ -30,7 +31,8 @@ void setup()
     display.setFont(ArialMT_Plain_16);
 
     display.clear();
-    display.drawString(0, 0, "Wait BLE");
+    display.drawString(0, 0, "AngelGuard");
+    display.drawString(0, 16, "Waiting BLE");
     display.display();
     // Wi-Fi
     while (WiFi.status() != WL_CONNECTED)
@@ -55,9 +57,9 @@ void setup()
                 for (unsigned char i = 0; i < 20 && WiFi.status() != WL_CONNECTED; i++)
                 {
                     // Serial.print(".");
-                    display.drawString(16, i, '.');
+                    display.drawString(i, 16, ".");
                     display.display();
-                    delay(1000);
+                    delay(500);
                 }
 
                 if (WiFi.status() == WL_CONNECTED)
@@ -65,7 +67,7 @@ void setup()
                     // Serial.println("\nWiFi Connected!");
                     display.clear();
                     display.drawString(0, 0, "WiFi");
-                    display.drawString(16, 0, "Connected!");
+                    display.drawString(0, 16, "Connected!");
                     display.display();
                 }
                 else
@@ -73,7 +75,7 @@ void setup()
                     // Serial.println("\nFailed to connect to WiFi.");
                     display.clear();
                     display.drawString(0, 0, "WiFi");
-                    display.drawString(16, 0, "Failed");
+                    display.drawString(0, 16, "Failed");
                     display.display();
                 }
             }
@@ -87,7 +89,7 @@ void setup()
     {
         display.clear();
         display.drawString(0, 0, "Server");
-        display.drawString(16, 0, "Offline");
+        display.drawString(0, 16, "Offline");
         display.display();
         delay(5000);
         return;
@@ -102,7 +104,10 @@ void loop()
 
     if (isnan(temperature) || isnan(humidity))
     {
-        Serial.println("DHT Error__");
+        // Serial.println("DHT Error__");
+        display.clear();
+        display.drawString(0, 0, "DHT Error");
+        display.display();
         return;
     }
 
