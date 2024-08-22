@@ -1,8 +1,3 @@
-// DHT sensor library / by Adafruit
-// ESP8266 and ESP32 OLED driver for SSD1306 displays / by THingPulse
-// ArduinoJson / by Benoit Blanchon
-// ArduinoWebsockets / by Gll Malmon
-
 #include <WiFi.h>
 #include <DHT.h>
 #include <Wire.h>
@@ -11,14 +6,38 @@
 #include <ArduinoWebsockets.h>
 #include <BluetoothSerial.h>
 
+#define IN1 2
+#define IN2 4
+#define IN3 16
+#define IN4 17
+
 DHT dht(15, DHT11);
 SSD1306 display(0x3c, 21, 22);
 using namespace websockets;
 WebsocketsClient client;
 BluetoothSerial SerialBT;
 
+int Steps = 0;
+unsigned long last_time = 0;
+unsigned long currentMillis = 0;
+
 String ssid = "";
 String password = "";
+
+TaskHandle_t moter;
+
+void moterCode(void *param)
+{
+    while (true)
+    {
+        currentMillis = micros();
+        if (currentMillis - last_time >= 1000)
+        { // 1밀리초마다 스텝 이동
+            stepper(1);
+            last_time = micros();
+        }
+    }
+}
 
 void setup()
 {
@@ -94,6 +113,20 @@ void setup()
         delay(5000);
         return;
     }
+
+    pinMode(IN1, OUTPUT);
+    pinMode(IN2, OUTPUT);
+    pinMode(IN3, OUTPUT);
+    pinMode(IN4, OUTPUT);
+
+    xTaskCreatePinnedToCore(
+        moterCode, // 태스크를 구현한 함수
+        "moter",   // 태스크 이름
+        10000,     // 스택 크기 (word단위)
+        NULL,      // 태스크 파라미터
+        0,         // 태스크 우선순위
+        &moter,    // 태스크 핸들
+        0);
 }
 
 void loop()
@@ -146,6 +179,78 @@ void loop()
 
     // Console
     // Serial.println("Temp : "+String(temperature)+", Humi : "+String(humidity));
+    /*
+    currentMillis = micros();
+    if (currentMillis - last_time >= 1000) { // 1밀리초마다 스텝 이동
+        stepper(1);
+        last_time = micros();
+    }
+    */
+}
 
-    delay(1000);
+void stepper(int xw)
+{
+    for (int x = 0; x < xw; x++)
+    {
+        switch (Steps)
+        {
+        case 0:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, HIGH);
+            break;
+        case 1:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, HIGH);
+            digitalWrite(IN4, HIGH);
+            break;
+        case 2:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, HIGH);
+            digitalWrite(IN4, LOW);
+            break;
+        case 3:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, HIGH);
+            digitalWrite(IN3, HIGH);
+            digitalWrite(IN4, LOW);
+            break;
+        case 4:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, HIGH);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, LOW);
+            break;
+        case 5:
+            digitalWrite(IN1, HIGH);
+            digitalWrite(IN2, HIGH);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, LOW);
+            break;
+        case 6:
+            digitalWrite(IN1, HIGH);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, LOW);
+            break;
+        case 7:
+            digitalWrite(IN1, HIGH);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, HIGH);
+            break;
+        default:
+            digitalWrite(IN1, LOW);
+            digitalWrite(IN2, LOW);
+            digitalWrite(IN3, LOW);
+            digitalWrite(IN4, LOW);
+            break;
+        }
+        Steps++; // 스텝 증가 (한 방향으로 계속 회전)
+        if (Steps > 7)
+            Steps = 0;
+    }
 }
