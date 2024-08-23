@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <ArduinoWebsockets.h>
 #include <BluetoothSerial.h>
+#include <Stepper.h>
 
 #define IN1 2
 #define IN2 4
