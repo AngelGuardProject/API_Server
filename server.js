@@ -19,6 +19,7 @@ app.use("/js", express.static("js"));
 app.get("/audio", (req, res) =>
   res.sendFile(path.resolve(__dirname, "./audio_client.html"))
 );
+
 app.get("/data", function (req, res) {
   const uuid = req.query.uuid;
   if (uuid) {
