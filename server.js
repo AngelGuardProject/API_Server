@@ -2,7 +2,6 @@ const express = require("express");
 const WebSocket = require("ws");
 const path = require("path");
 const app = express();
-const { default: push } = require("./js/push");
 
 let dataStore = {}; //ws server
 
@@ -19,9 +18,7 @@ app.listen(port, function () {
 //MIC sever
 app.use("/image", express.static("image"));
 app.use("/js", express.static("js"));
-app.get("/audio", (req, res) =>
-  res.sendFile(path.resolve(__dirname, "./audio_client.html"))
-);
+app.get("/audio", (req, res) => res.sendFile(path.resolve(__dirname, "./audio_client.html")));
 
 mics.on("connection", (ws, req) => {
   console.log("MIC server connected");
@@ -46,6 +43,7 @@ app.get("/data", function (req, res) {
 
 //ws Server
 wss.on("connection", (ws) => {
+  ws.on('error', console.error);
   console.log("wws connected");
   ws.on("message", function incoming(data) {
     //console.log("Received message:", data);
@@ -56,9 +54,10 @@ wss.on("connection", (ws) => {
       const hm = jsonData.hm;
       const time = new Date().toLocaleString('ko-KR');
       console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
-      if(hm>70||temp>35)push(uuid,temp,hm);
+      if(hm>70||temp>35) ws.send(id); //push
       dataStore[uuid] = { temp, hm , time};
     } catch (error) {
+      
       console.error("Error parsing JSON data:", error);
     }
   });
