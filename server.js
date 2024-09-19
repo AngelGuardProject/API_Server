@@ -33,12 +33,12 @@ mics.on("connection", (ws, req) => {
 
 //Data server
 app.get("/data", function (req, res) {
-  const uuid = req.query.uuid;
-  if (uuid) {
+  const id = req.query.id;
+  if (id) {
     // 특정 uuid의 데이터를 반환
-    if (dataStore[uuid]) res.json(dataStore[uuid]);
-    else res.status(404).json({ error: "UUID not found" });
-  } else res.status(404).json({ error: "UUID not found" });
+    if (dataStore[id]) res.json(dataStore[id]);
+    else res.status(404).json({ error: "ID not found" });
+  } else res.status(404).json({ error: "ID not found" });
 });
 
 //ws Server
@@ -49,13 +49,13 @@ wss.on("connection", (ws) => {
     //console.log("Received message:", data);
     try {
       const jsonData = JSON.parse(data);
-      const uuid = jsonData.uuid;
+      const id = jsonData.id;
       const temp = jsonData.temp;
       const hm = jsonData.hm;
       const time = new Date().toLocaleString('ko-KR');
-      console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
+      console.log("ID : ", id, "temp : ", temp, " / hm : ", hm);
       if(hm>70||temp>35) ws.send(id); //push
-      dataStore[uuid] = { temp, hm , time};
+      dataStore[id] = { temp, hm , time};
     } catch (error) {
       
       console.error("Error parsing JSON data:", error);
