@@ -19,7 +19,6 @@ app.listen(port, function () {
 app.use("/image", express.static("image"));
 app.use("/js", express.static("js"));
 app.get("/audio", (req, res) => res.sendFile(path.resolve(__dirname, "./audio_client.html")));
-
 mics.on("connection", (ws, req) => {
   console.log("MIC server connected");
   connectedClients.push(ws);
@@ -33,15 +32,15 @@ mics.on("connection", (ws, req) => {
 
 //Data server
 app.get("/data", function (req, res) {
-  const id = req.query.id;
-  if (id) {
+  const uuid = req.query.uuid;
+  if (uuid) {
     // 특정 uuid의 데이터를 반환
-    if (dataStore[id]) res.json(dataStore[id]);
-    else res.status(404).json({ error: "ID not found" });
-  } else res.status(404).json({ error: "ID not found" });
+    if (dataStore[uuid]) res.json(dataStore[uuid]);
+    else res.status(404).json({ error: "UUID not found" });
+  } else res.status(404).json({ error: "UUID not found" });
 });
 
-//ws Server
+//WS Server
 wss.on("connection", (ws) => {
   ws.on('error', console.error);
   console.log("wws connected");
@@ -49,15 +48,14 @@ wss.on("connection", (ws) => {
     //console.log("Received message:", data);
     try {
       const jsonData = JSON.parse(data);
-      const id = jsonData.id;
+      const uuid = jsonData.uuid;
       const temp = jsonData.temp;
       const hm = jsonData.hm;
       const time = new Date().toLocaleString('ko-KR');
-      console.log("ID : ", id, "temp : ", temp, " / hm : ", hm);
-      if(hm>70||temp>35) ws.send(id); //push
-      dataStore[id] = { temp, hm , time};
+      console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
+      //이곳에 이상치값 알림 기능 구현 필요
+      dataStore[uuid] = { temp, hm, time };
     } catch (error) {
-      
       console.error("Error parsing JSON data:", error);
     }
   });
