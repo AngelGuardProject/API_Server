@@ -48,9 +48,9 @@ wss.on("connection", (ws) => {
     //console.log("Received message:", data);
     try {
       const jsonData = JSON.parse(data);
-      const uuid = jsonData.uuid;
-      const temp = jsonData.temp;
-      const hm = jsonData.hm;
+      const uuid = jsonData.UUID;
+      const temp = jsonData.temperature;
+      const hm = jsonData.humidity;
       const time = new Date().toLocaleString('ko-KR');
       console.log("UUID : ", uuid, "temp : ", temp, " / hm : ", hm);
       //이곳에 이상치값 알림 기능 구현 필요
