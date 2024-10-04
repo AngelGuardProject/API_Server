@@ -51,7 +51,7 @@ def get_data():
 # WS 서버 (포트 3030) - 라즈베리파이로부터 데이터 수신 및 알람 송신
 async def ws_server(websocket, path) :
     print("WS server connected")
-    async for message in websocket :
+    async for message in websocket:
         try :
             json_data = json.loads(message)
             uuid = json_data.get("UUID")
@@ -71,10 +71,11 @@ async def ws_server(websocket, path) :
 def run_flask() : app.run(host='0.0.0.0', port=3010)
 
 # WebSocket 서버 실행 (포트 3020, 3030)
-async def run_ws_servers():
+async def run_ws_servers() :
     #mic_server_task = websockets.serve(mic_server, '0.0.0.0', 3020)
     ws_server_task = websockets.serve(ws_server, '0.0.0.0', 3030)
-    await asyncio.gather('''mic_server_task, '''ws_server_task)
+    await asyncio.gather(ws_server_task)
+    # await asyncio.gather(mic_server_task, ws_server_task)
 
 if __name__ == "__main__" :
     flask_thread = threading.Thread(target=run_flask) # Flask 서버를 별도의 스레드에서 실행
