@@ -74,7 +74,7 @@ def run_flask() : app.run(host='0.0.0.0', port=3010)
 async def run_ws_servers():
     #mic_server_task = websockets.serve(mic_server, '0.0.0.0', 3020)
     ws_server_task = websockets.serve(ws_server, '0.0.0.0', 3030)
-    await asyncio.gather(mic_server_task, ws_server_task)
+    await asyncio.gather('''mic_server_task, '''ws_server_task)
 
 if __name__ == "__main__" :
     flask_thread = threading.Thread(target=run_flask) # Flask 서버를 별도의 스레드에서 실행
