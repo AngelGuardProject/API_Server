@@ -22,10 +22,13 @@ async def ws_server(websocket, path) :
     print("WS server connected")
     async for message in websocket:
         try :
-            json_data = json.loads(message)
-            uuid = message.get("UUID")
-            temp = message.get("temperature")
-            humidity = message.get("humidity")
+            json_data = json.loads(message) 
+            print(message)
+            print(json_data)
+            uuid = json_data.get("UUID")
+            print(uuid)
+            temp = json_data.get("temperature")
+            humidity = json_data.get("humidity")
             time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
             if uuid :
