@@ -4,4 +4,4 @@
 git pull origin main
 
 # 서버 실행
-node server.js
+python3 ./server.py
