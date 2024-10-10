@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 app = Flask(__name__)
 
-data_store = {}  # 데이터 저장소
+data_store = []  # 데이터 저장소
 
 # 데이터 서버 경로 설정
 @app.route('/data')
