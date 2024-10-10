@@ -1,19 +1,20 @@
-import os
 import json
 import asyncio
 import threading
 import websockets
 from datetime import datetime
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-data_store = []  # 데이터 저장소
+data_store = {}  # 데이터 저장소
 
 # 데이터 서버 경로 설정
 @app.route('/data')
 def get_data():
     uuid = request.args.get('uuid')
+    try : uuid = int(uuid)
+    except (TypeError, ValueError) : return jsonify({"error": "Invalid UUID format"}), 400
     if uuid in data_store : return jsonify(data_store[uuid])
     else : return jsonify({"error": "UUID not found"}), 404
 
