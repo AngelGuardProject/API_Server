@@ -23,10 +23,7 @@ async def ws_server(websocket, path) :
     async for message in websocket:
         try :
             json_data = json.loads(message) 
-            print(message)
-            print(json_data)
             uuid = json_data.get("UUID")
-            print(uuid)
             temp = json_data.get("temperature")
             humidity = json_data.get("humidity")
             time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -36,14 +33,13 @@ async def ws_server(websocket, path) :
                 data_store[uuid] = {"temp": temp, "humidity": humidity, "time": time}
             else :
                 print("UUID not found in message")
-        except json.JSONDecodeError as e : 
-            print(f"Error parsing JSON: {e}")
+        except json.JSONDecodeError as e : print(f"Error parsing JSON: {e}")
+        except KeyboardInterrupt : break
+        except Exception as e : print(type(e), e)
 
 # Flask 앱 실행 (포트 3010)
 def run_flask() : app.run(host='0.0.0.0', port=3010)
 
-# WebSocket 서버 실행 (포트 3020, 3030)
-# WebSocket 서버 실행 (포트 3030)
 async def run_ws_servers():
     async with websockets.serve(
         ws_server,
@@ -54,8 +50,6 @@ async def run_ws_servers():
     ):
         print('Server started')
         await asyncio.Future()
-
-
 
 if __name__ == "__main__" :
     flask_thread = threading.Thread(target=run_flask) # Flask 서버를 별도의 스레드에서 실행
