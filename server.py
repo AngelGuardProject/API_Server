@@ -23,7 +23,7 @@ async def ws_server(websocket, path) :
     async for message in websocket:
         try :
             json_data = json.loads(message)
-            print(f"전송할 데이터: {message}")
+            print(f"전송할 데이터: {json_data}")  
             uuid = json_data.get("UUID")
             temp = json_data.get("temperature")
             humidity = json_data.get("humidity")
