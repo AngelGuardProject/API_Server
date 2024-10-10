@@ -40,11 +40,18 @@ async def ws_server(websocket, path) :
 def run_flask() : app.run(host='0.0.0.0', port=3010)
 
 # WebSocket 서버 실행 (포트 3020, 3030)
-async def run_ws_servers() :
-    #mic_server_task = websockets.serve(mic_server, '0.0.0.0', 3020)
-    async with websockets.serve(ws_server, '0.0.0.0', 3030) : 
+# WebSocket 서버 실행 (포트 3030)
+async def run_ws_servers():
+    async with websockets.serve(
+        ws_server,
+        '0.0.0.0',
+        3030,
+        ping_interval=20,
+        ping_timeout=30
+    ):
         print('Server started')
         await asyncio.Future()
+
 
 
 if __name__ == "__main__" :
