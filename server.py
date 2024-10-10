@@ -31,6 +31,7 @@ async def ws_server(websocket, path) :
             if uuid is not None :
                 print(f"UUID: {uuid}, Temp: {temp}, Humidity: {humidity}")
                 data_store[uuid] = {"temp": temp, "humidity": humidity, "time": time}
+                print(data_store[uuid])
             else :
                 print("UUID not found in message")
         except json.JSONDecodeError as e : print(f"Error parsing JSON: {e}")
