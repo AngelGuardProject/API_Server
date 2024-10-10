@@ -31,7 +31,7 @@ async def ws_server(websocket, path) :
             humidity = json_data.get("humidity")
             time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            if uuid :
+            if uuid is not None :
                 print(f"UUID: {uuid}, Temp: {temp}, Humidity: {humidity}")
                 data_store[uuid] = {"temp": temp, "humidity": humidity, "time": time}
             else :
