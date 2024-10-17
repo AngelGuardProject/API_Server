@@ -9,7 +9,6 @@ app = Flask(__name__)
 
 data_store = {}  # 데이터 저장소
 
-
 # 데이터 서버 경로 설정
 @app.route("/data")
 def get_data():
@@ -24,7 +23,7 @@ def get_data():
         return jsonify({"error": "UUID not found"}), 404
 
 
-# WS 서버 (포트 3030) - 라즈베리파이로부터 데이터 수신 및 알람 송신
+# WS 서버 (포트 3030) - 라즈베리파이로부터 데이터 수신 및 스텝모터 명령
 async def ws_server(websocket, path):
     print("WS server connected")
     async for message in websocket:

@@ -25,22 +25,6 @@ def get_data():
     else:
         return jsonify({"error": "UUID not found"}), 404
 
-# 스텝모터 조종용
-@app.route('/moter', methods=['POST'])
-def control_moter():
-    """ /moter 경로로 POST 요청이 들어오면 WebSocket 클라이언트에 데이터를 전송 """
-    data = request.get_json()
-    moter_value = data.get("moter")
-
-    # moter 값이 0 또는 1일 때만 연결된 WebSocket 클라이언트에 전송
-    if moter_value in [0, 1]:
-        # 비동기로 WebSocket 메시지를 전송
-        asyncio.run(send_to_clients(moter_value))
-        print(f"Sent to WebSocket clients: {moter_value}")
-        return jsonify({"status": "success", "moter": moter_value}), 200
-    else:
-        return jsonify({"status": "error", "message": "Invalid value"}), 400
-
 
 async def send_to_clients(moter_value):
     """연결된 모든 WebSocket 클라이언트에게 메시지를 전송"""
@@ -63,8 +47,6 @@ async def ws_server(websocket, path):
                 print(f"UUID: {uuid}, Temp: {temp}, Humidity: {humidity}")
                 data_store[uuid] = {"temp": temp, "humidity": humidity, "time": time}
                 print(data_store[uuid])
-                if temp * humidity > 100:
-                    await notify_push_clients(uuid)
             else:
                 print("UUID not found in message")
         except json.JSONDecodeError as e:
@@ -75,30 +57,8 @@ async def ws_server(websocket, path):
             print(type(e), e)
 
 
-# WS push 알림 서버 포트 3020
-async def push_server(websocket, path):
-    push_clients.add(websocket)
-    try:
-        await websocket.wait_closed()
-    finally:
-        push_clients.remove(websocket)
-
-
-# 특정 UUID를 푸시 서버에 연결된 모든 클라이언트에게 전송
-async def notify_push_clients(uuid):
-    if push_clients:
-        message = json.dumps({"alert": f"Condition met for UUID: {uuid}"})
-        await asyncio.wait([client.send(uuid) for client in push_clients])
-        print(f"Sent alert for UUID: {uuid}")
-
 # WS, PUSH 서버 실행용 3030 3020
 async def run_ws_servers():
-    '''
-    ws_server_task = websockets.serve(ws_server, "0.0.0.0", 3030, ping_interval=20, ping_timeout=30)
-    #push_server_task = websockets.serve(push_server, "0.0.0.0", 3020, ping_interval=20, ping_timeout=30)
-    await asyncio.gather(ws_server_task) #, push_server_task
-    print("WS Servers started")
-    '''
     async with websockets.serve(
         ws_server, "0.0.0.0", 3030, ping_interval=20, ping_timeout=30
     ):

@@ -49,7 +49,7 @@ async def handle_client(websocket, path):
 async def main():
     try :
         # 포트 6789에서 WebSocket 서버 시작
-        async with websockets.serve(handle_client, "localhost", 6789):
+        async with websockets.serve(handle_client, "localhost", 6666):
             print("websocket [Port : 6798] is online")
 
             # 주기적으로 broadcast_zero() 함수를 호출

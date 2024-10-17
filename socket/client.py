@@ -1,6 +1,6 @@
 import asyncio
 import websockets
-
+import json
 
 # 서버에서 오는 메시지를 수신하고 출력
 async def receive_message(websocket):
@@ -12,13 +12,11 @@ async def receive_message(websocket):
 
 
 # 1초마다 값을 증가시키며 서버로 전송
-async def send_message(websocket):
-    value = 0
+async def dht(websocket):
+    data = {"UUID": 1, "temperature": 10, "humidity":10}
     try:
         while True:
-            await websocket.send(str(value))
-            print(f"Send : {value}")
-            value += 1
+            await websocket.send(json.dumps(data))
             await asyncio.sleep(1)  # 1초마다 값을 증가시키며 전송
     except websockets.exceptions.ConnectionClosed:
         print("Server closed")
@@ -26,12 +24,13 @@ async def send_message(websocket):
 
 async def main():
     # 서버에 연결
-    uri = "ws://localhost:6789"
+    #uri = "ws://localhost:6666"
+    uri = "ws://louk342.iptime.org:3030"
     try:
         async with websockets.connect(uri) as websocket:
             print("Server connected")
             # 수신 및 송신 작업을 동시에 실행하여 연결을 유지
-            await asyncio.gather(receive_message(websocket), send_message(websocket))
+            await asyncio.gather(receive_message(websocket), dht(websocket))
     except websockets.exceptions.ConnectionClosed:
         print("Server closed")
     except KeyboardInterrupt:
