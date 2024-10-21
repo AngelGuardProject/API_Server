@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 
+WS_SERVER_URL = "ws://louk342.iptime.org:3030"
 # 서버에서 오는 메시지를 수신하고 출력
 async def receive_message(websocket):
     try:
@@ -23,11 +24,8 @@ async def dht(websocket):
 
 
 async def main():
-    # 서버에 연결
-    #uri = "ws://localhost:6666"
-    uri = "ws://louk342.iptime.org:3030"
     try:
-        async with websockets.connect(uri) as websocket:
+        async with websockets.connect(WS_SERVER_URL) as websocket:
             print("Server connected")
             # 수신 및 송신 작업을 동시에 실행하여 연결을 유지
             await asyncio.gather(receive_message(websocket), dht(websocket))

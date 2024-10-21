@@ -1,15 +1,13 @@
 import RPi.GPIO as GPIO
 import adafruit_dht
 import board
-import time
 import asyncio
 import websockets
+import time
 import json
 
 UUID = 0
 WS_SERVER_URL = "ws://louk342.iptime.org:3030"
-
-motor_power = 0
 
 DHT_PIN = 23
 GPIO.setwarnings(False)
@@ -17,21 +15,28 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(DHT_PIN, GPIO.IN)
 dhtDevice = adafruit_dht.DHT11(board.D23)
 
+# 핀 번호 설정 (라즈베리파이의 GPIO 핀을 ULN2003의 IN1 ~ IN4에 연결)
 IN1 = 18  # ULN2003 IN1
 IN2 = 17  # ULN2003 IN2
 IN3 = 27  # ULN2003 IN3
 IN4 = 22  # ULN2003 IN4
+
+# 핀을 출력 모드로 설정
 GPIO.setup(IN1, GPIO.OUT)
 GPIO.setup(IN2, GPIO.OUT)
 GPIO.setup(IN3, GPIO.OUT)
 GPIO.setup(IN4, GPIO.OUT)
 
+# 스텝 순서 (4-step sequence)
 step_sequence = [
     [1, 0, 0, 0],
     [0, 1, 0, 0],
     [0, 0, 1, 0],
     [0, 0, 0, 1],
 ]
+
+# 전역 변수로 모터 전원 상태를 설정 (초기값: 0)
+motor_power = 0
 
 
 def set_step(w1, w2, w3, w4):
@@ -43,7 +48,6 @@ def set_step(w1, w2, w3, w4):
 
 
 def rotate_motor(delay, steps):
-    """모터를 회전시키는 함수"""
     while True:
         if motor_power == 1:  # motor_power가 1일 때만 회전
             for _ in range(steps):
@@ -57,12 +61,27 @@ def rotate_motor(delay, steps):
             set_step(0, 0, 0, 0)  # 모터 정지 상태 유지
 
 
+# 서버 재연결
+async def reconnect():
+    while True:
+        try:
+            async with websockets.connect(WS_SERVER_URL) as websocket:
+                print("Reconnected to server")
+                await asyncio.gather(receive_message(websocket), dht(websocket))
+        except (websockets.exceptions.ConnectionClosed, OSError):
+            print("Reconnection failed. Retrying in 5 seconds...")
+            await asyncio.sleep(5)
+        except KeyboardInterrupt:
+            print("\nClient exited during reconnect")
+            break
+
+
 # 서버에서 오는 메시지를 수신하고 출력
 async def receive_message(websocket):
     try:
         async for message in websocket:
             json_data = json.loads(message)
-            print("message recieved")
+            print("message recieved : "),json_data
             uuid = json_data.get("uuid")
             motor_value = json_data.get("moter")
             if uuid == UUID:
@@ -79,7 +98,6 @@ async def receive_message(websocket):
         print(f"Unexpected error: {type(e)} - {e}")
 
 
-# 1초마다 값을 증가시키며 서버로 전송
 async def dht(websocket):
     while True:
         try:
@@ -91,27 +109,26 @@ async def dht(websocket):
                 print(f"Data send: {data}")
             else:
                 print("DHT error")
-            time.sleep(1)
-
+            await asyncio.sleep(1)
         except BrokenPipeError:
             print("Connetion lost. Reconneting")
-            # 서버 재연결 시도 필요
-            time.sleep(1)
+            await asyncio.sleep(1)
+            await reconnect()
         except KeyboardInterrupt:
+            print("DHT stop")
             break
         except Exception as e:
             print(type(e), e)
-            time.sleep(1)
+            await asyncio.sleep(1)
 
 
 async def main():
-    # 서버에 연결
-    uri = "ws://localhost:6666"
     try:
         async with websockets.connect(WS_SERVER_URL) as websocket:
             print("Server connected")
             # 수신 및 송신 작업을 동시에 실행하여 연결을 유지
             await asyncio.gather(receive_message(websocket), dht(websocket))
+            # rotate_motor(0.005, 512)
     except websockets.exceptions.ConnectionClosed:
         print("Server closed")
     except KeyboardInterrupt:
@@ -124,4 +141,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nClient exited")
     finally:
-        GPIO.cleanup()  # GPIO 설정 초기화
+        GPIO.cleanup()
