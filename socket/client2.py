@@ -1,14 +1,16 @@
-import RPi.GPIO as GPIO
-import adafruit_dht
-import board
 import asyncio
 import websockets
+import RPi.GPIO as GPIO
 import time
 import json
+import adafruit_dht
+import board
+from threading import Thread
 
-UUID = 0
-WS_SERVER_URL = "ws://louk342.iptime.org:3030"
+UUID = 0  # 고유 식별자 설정
+WS_SERVER_URL = "ws://louk342.iptime.org:3030"  # WebSocket 서버 주소
 
+# DHT11 센서 핀 설정
 DHT_PIN = 23
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -38,16 +40,16 @@ step_sequence = [
 # 전역 변수로 모터 전원 상태를 설정 (초기값: 0)
 motor_power = 0
 
-
+# 각 단계의 GPIO 핀 출력을 설정하는 함수
 def set_step(w1, w2, w3, w4):
-    """각 단계의 GPIO 핀 출력을 설정"""
     GPIO.output(IN1, w1)
     GPIO.output(IN2, w2)
     GPIO.output(IN3, w3)
     GPIO.output(IN4, w4)
 
-
-def rotate_motor(delay, steps):
+# 모터를 회전시키는 함수 (별도 스레드에서 실행)
+def rotate_motor(delay=0.005, steps=512):
+    global motor_power
     while True:
         if motor_power == 1:  # motor_power가 1일 때만 회전
             for _ in range(steps):
@@ -58,47 +60,44 @@ def rotate_motor(delay, steps):
                     set_step(*step)
                     time.sleep(delay)
         else:
-            set_step(0, 0, 0, 0)  # 모터 정지 상태 유지
+            time.sleep(0.1)  # 모터가 꺼져 있을 때 대기
 
-
-# 서버 재연결
-async def reconnect():
-    while True:
-        try:
-            async with websockets.connect(WS_SERVER_URL) as websocket:
-                print("Reconnected to server")
-                await asyncio.gather(receive_message(websocket), dht(websocket))
-        except (websockets.exceptions.ConnectionClosed, OSError):
-            print("Reconnection failed. Retrying in 5 seconds...")
-            await asyncio.sleep(5)
-        except KeyboardInterrupt:
-            print("\nClient exited during reconnect")
-            break
-
-
-# 서버에서 오는 메시지를 수신하고 출력
+# WebSocket 서버에서 메시지를 수신하고 처리하는 함수
 async def receive_message(websocket):
+    global motor_power
     try:
         async for message in websocket:
-            json_data = json.loads(message)
-            print("message recieved : "),json_data
-            uuid = json_data.get("uuid")
-            motor_value = json_data.get("moter")
-            if uuid == UUID:
-                global motor_power
-                motor_power = motor_value
-                print(f"Updated motor_power to {motor_power}")
-            else:
-                print("Received UUID does not match")
+            try:
+                # JSON 데이터 파싱
+                json_data = json.loads(message)
+                print("Message received:", json_data)
+
+                uuid = json_data.get("uuid")
+                motor_value = json_data.get("moter")
+
+                if uuid == UUID:
+                    # 수신된 uuid가 자신의 uuid와 일치하는 경우
+                    motor_power = int(motor_value)
+                    if motor_power == 1:
+                        print("Motor ON")
+                    elif motor_power == 0:
+                        print("Motor OFF")
+                        set_step(0, 0, 0, 0)  # 모터 정지
+                else:
+                    print("Received UUID does not match")
+
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {e}")
+            except Exception as e:
+                print(f"Unexpected error: {type(e)} - {e}")
+
     except websockets.exceptions.ConnectionClosed:
         print("Server closed")
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
     except Exception as e:
         print(f"Unexpected error: {type(e)} - {e}")
 
-
-async def dht(websocket):
+# DHT11 센서 데이터를 서버로 전송하는 함수
+async def dht_send(websocket):
     while True:
         try:
             temp = dhtDevice.temperature
@@ -106,39 +105,40 @@ async def dht(websocket):
             if humi is not None and temp is not None:
                 data = {"UUID": UUID, "temperature": temp, "humidity": humi}
                 await websocket.send(json.dumps(data))
-                print(f"Data send: {data}")
+                print(f"Data sent: {data}")
             else:
                 print("DHT error")
-            await asyncio.sleep(1)
+            await asyncio.sleep(1)  # 1초 간격으로 데이터 전송
         except BrokenPipeError:
-            print("Connetion lost. Reconneting")
+            print("Connection lost. Reconnecting...")
             await asyncio.sleep(1)
-            await reconnect()
         except KeyboardInterrupt:
-            print("DHT stop")
+            print("DHT stopped by user")
             break
         except Exception as e:
             print(type(e), e)
             await asyncio.sleep(1)
 
-
+# WebSocket 클라이언트 연결 및 실행
 async def main():
     try:
         async with websockets.connect(WS_SERVER_URL) as websocket:
-            print("Server connected")
-            # 수신 및 송신 작업을 동시에 실행하여 연결을 유지
-            await asyncio.gather(receive_message(websocket), dht(websocket))
-            # rotate_motor(0.005, 512)
+            print("Connected to server")
+            await asyncio.gather(receive_message(websocket), dht_send(websocket))
     except websockets.exceptions.ConnectionClosed:
         print("Server closed")
     except KeyboardInterrupt:
-        print("\nClient exited")
-
+        print("Client exited by user")
+    finally:
+        GPIO.cleanup()
 
 if __name__ == "__main__":
     try:
+        motor_thread = Thread(target=rotate_motor)
+        motor_thread.daemon = True
+        motor_thread.start()
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nClient exited")
+        print("Client stopped by user")
     finally:
         GPIO.cleanup()
